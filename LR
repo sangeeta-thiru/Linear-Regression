@@ -1,0 +1,60 @@
+
+""" ---------GOAL OF THE PROJECT-----------
+To forecast the sales and to predict how much money should be spent on advertisements. This is because the sale of a product is usually proportional to the money spent on advertisements.
+Predict the impact of TV advertising on product sales by performing simple linear regression analysis."""
+
+# Task 1:
+# Load the dataset
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+file="/content/sample_data/sales_and_advertising.csv"
+dfrm = pd.read_csv(file)
+dfrm.head(3)
+dfrm.isnull().sum()
+
+# Task 2:
+# Splitting the dataframe
+from sklearn.model_selection import train_test_split
+features = dfrm['TV']  
+target = dfrm['Sales'] 
+f_train, f_test, t_train, t_test = train_test_split(features,target, train_size = 0.33, random_state = 12)
+
+# Task 3:
+# Train the simple regression model using training data to obtain the best fit line y=mx+c 
+# slope⇒ m= ∑(xi−x¯)(yi−y¯)/∑(xi−x¯)2 ie., product_of_errors().sum()/squared_errors().sum() 
+# intercept⇒ c=y¯−mx¯
+
+def product_of_errors():
+  product = (f_train - f_train.mean()) * (t_train - t_train.mean())
+  return product
+def squared_errors():
+  errors = (f_train - f_train.mean()) ** 2
+  return errors
+  
+# Calculate the slope and intercept values for the best fit line.  
+slope = product_of_errors().sum()/squared_errors().sum() 
+intercept = t_train.mean() - slope * f_train.mean()
+print(f"\nSlope: {slope} \nIntercept\n: {intercept}")
+
+# Activity 4:
+# Plot the regression line in the scatter plot between Sales and TV advertisment values.
+# The equation of best fit line obtained is: y=0.0557x+7.1270
+plt.style.use('dark_background')
+plt.figure(figsize = (12, 5), dpi = 96)
+plt.title("Regression Line", fontsize = 16)
+plt.scatter(dfrm['TV'], dfrm['Sales'])
+plt.plot(dfrm['TV'], slope * dfrm['TV'] + intercept, color = 'r', linewidth = 2, label = 'y = 0.0557x + 7.1270')
+plt.xlabel("TV advertising")
+plt.ylabel("Sales")
+plt.legend()
+plt.show()
+
+# Activity 5:
+#Create a function which takes TV advertisement value as an input and returns the sales.
+def sales_predicted(tv_adv):
+  return 0.0557 * tv_adv + 7.1270
+
+print("\nPREDICTION:\nThe predicted sales value is:",round(sales_predicted(54)))
+  
