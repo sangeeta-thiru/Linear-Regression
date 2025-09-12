@@ -1,60 +1,111 @@
+# I have created a csv file with 50 samples with columns
+# Name,Age,Gender,Spending_Travel,Spending_Food,Savings
 
-""" ---------GOAL OF THE PROJECT-----------
-To forecast the sales and to predict how much money should be spent on advertisements. This is because the sale of a product is usually proportional to the money spent on advertisements.
-Predict the impact of TV advertising on product sales by performing simple linear regression analysis."""
+# To know relationships between "Age" and "Savings", I have Built and evaluated Linear regression ML model  
+# since r2 scores were not in acceptable range , I have Built and evaluated Multiple Linear regression model 
+# As multiple LR model also failed , I bulit Random Forest regressor model which was good model
+# Achieved 89% accuracy in random forest model
 
-# Task 1:
-# Load the dataset
-import numpy as np
+# imported all required modules
 import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
-file="https://raw.githubusercontent.com/sangeeta-thiru/Linear-Regression/main/advertising.csv"
-dfrm = pd.read_csv(file)
-dfrm.head(3)
-dfrm.isnull().sum()
+import matplotlib.pyplot as plt
 
-# Task 2:
-# Splitting the dataframe
+# read the data frame
+df=pd.read_csv(r"C:\Users\AT Sangeeta\OneDrive\Desktop\tp\Machine learning\people_spending.csv")
+df.head()
+
+#initial inspections
+print(df.shape)
+print(df.isnull().sum())
+print()
+print(df.describe())
+
+# visualizing original data
+plt.scatter(df["Age"],df["Savings"])
+# sns.regplot()
+sns.regplot(x="Age", y="Savings", data=df)
+# we see positive relationship as per reg line
+
 from sklearn.model_selection import train_test_split
-features = dfrm['TV']  
-target = dfrm['Sales'] 
-f_train, f_test, t_train, t_test = train_test_split(features,target, train_size = 0.33, random_state = 12)
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 
-# Task 3:
-# Train the simple regression model using training data to obtain the best fit line y=mx+c 
-# slope⇒ m= ∑(xi−x¯)(yi−y¯)/∑(xi−x¯)2 ie., product_of_errors().sum()/squared_errors().sum() 
-# intercept⇒ c=y¯−mx¯
+# building the LR model and doing predictions
+x=df["Age"]
+y=df["Savings"]
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.3,random_state=42)
+x_train=x_train.values.reshape(-1,1)
+x_test=x_test.values.reshape(-1,1)
+model=LinearRegression().fit(x_train,y_train)
+ytrain_pred=model.predict(x_train)
+ytrain_pred_score=r2_score(y_train,ytrain_pred)
+ytest_pred=model.predict(x_test)
+ytest_pred_score=r2_score(y_test,ytest_pred)
+print(f"y_train_pred_score: {round(ytrain_pred_score,3)}\ny_test_pred_score: {round(ytest_pred_score,3)}")
+# we see r2 scores are not nearing to 1, so we are going to do multiple LR model
 
-def product_of_errors():
-  product = (f_train - f_train.mean()) * (t_train - t_train.mean())
-  return product
-def squared_errors():
-  errors = (f_train - f_train.mean()) ** 2
-  return errors
-  
-# Calculate the slope and intercept values for the best fit line.  
-slope = product_of_errors().sum()/squared_errors().sum() 
-intercept = t_train.mean() - slope * f_train.mean()
-print(f"\nSlope: {slope} \nIntercept\n: {intercept}")
+# since r2 scores are not good, Iam going for multiple linear regression taking columns like 
+# "Age","Spending_Food","Spending_Travel"
 
-# Activity 4:
-# Plot the regression line in the scatter plot between Sales and TV advertisment values.
-# The equation of best fit line obtained is: y=0.0557x+7.1270
-plt.style.use('dark_background')
-plt.figure(figsize = (12, 5), dpi = 96)
-plt.title("Regression Line", fontsize = 16)
-plt.scatter(dfrm['TV'], dfrm['Sales'])
-plt.plot(dfrm['TV'], slope * dfrm['TV'] + intercept, color = 'r', linewidth = 2, label = 'y = 0.0557x + 7.1270')
-plt.xlabel("TV advertising")
-plt.ylabel("Sales")
-plt.legend()
-plt.show()
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+# building the multiple LR model and doing predictions
+x=df[["Age","Spending_Food","Spending_Travel"]]
+y=df["Savings"]
+x_train,x_test,y_train,y_test=train_test_split(x,y,test_size=0.3,random_state=42)
+model=LinearRegression().fit(x_train,y_train)
+ytrain_pred=model.predict(x_train)
+ytrain_pred_score=r2_score(y_train,ytrain_pred)
+ytest_pred=model.predict(x_test)
+ytest_pred_score=r2_score(y_test,ytest_pred)
+print(f"y_train_pred_score: {round(ytrain_pred_score,3)}\ny_test_pred_score: {round(ytest_pred_score,3)}")
 
-# Activity 5:
-#Create a function which takes TV advertisement value as an input and returns the sales.
-def sales_predicted(tv_adv):
-  return 0.0557 * tv_adv + 7.1270
+# again r2 scores are not good, Iam going add a column called "occupation"
+# so people savings can be explained by their job
+occu=["doctor","teacher","cleaner"]
+df["occupation"]=np.random.choice(occu,size=len(df))
+df["occupation"]
+df.head()
 
-print("\nPREDICTION:\nThe predicted sales value is:",round(sales_predicted(54)))
-  
+
+# converting occupation column into numerical values 
+x=pd.get_dummies(df[["Age","Spending_Food","Spending_Travel","occupation"]])
+
+# building and doing predictions with new data
+x=pd.get_dummies(df[["Age","Spending_Food","Spending_Travel","occupation"]])
+y=df["Savings"]
+x_train1,x_test1,y_train1,y_test1=train_test_split(x,y,test_size=0.3,random_state=42)
+model=LinearRegression().fit(x_train1,y_train1)
+ytrain_pred1=model.predict(x_train1)
+ytest_pred1=model.predict(x_test1)
+print(f"y_train_pred_score: {round(r2_score(y_train1,ytrain_pred1),3)}\ny_test_pred_score: {round(r2_score(y_test1,ytest_pred1),3)}")
+
+# As multiple LR model also failed , I bulit Random Forest regressor model which was good model
+# building Random forest regressor model
+from sklearn.tree import DecisionTreeRegressor
+tree_model=DecisionTreeRegressor(max_depth=5,min_samples_split=4,min_samples_leaf=2,random_state=42)
+tree_model.fit(x_train1,y_train1)
+tree_ytrain_pred=tree_model.predict(x_train1)
+tree_ytest_pred=tree_model.predict(x_test1)
+print(f"y_train_pred_score: {round(r2_score(y_train1,tree_ytrain_pred),3)}\ny_test_pred_score: {round(r2_score(y_test1,tree_ytest_pred),3)}")
+
+plt.figure(figsize=(15,5))
+plt.subplot(1,2,1)
+plt.title("original data")
+plt.scatter(df["Age"],df["Savings"])
+sns.regplot(data=df,x="Age",y="Savings",ci=None)
+
+
+plt.subplot(1,2,2)
+plt.title("predicted data")
+plt.scatter(df["Age"],df["Savings"])
+sns.regplot(data=df,x=y_test1,y=tree_ytest_pred,ci=None)
+plt.tight_layout()
+
+# My model had high training accuracy (R²=0.89) 
+# but very low testing accuracy (R²≈0). 
+# This means it is overfitting — the model learned too much of training data .
+# To fix this,we can add better features or change the model
